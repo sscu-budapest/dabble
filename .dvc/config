@@ -1,0 +1,5 @@
+[core]
+    remote = public
+['remote "public"']
+    url = s3://sscub-ibm-bucket
+    endpointurl = https://s3.eu-de.cloud-object-storage.appdomain.cloud

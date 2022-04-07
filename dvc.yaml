@@ -1,0 +1,11 @@
+stages:
+  complete-covid_patients:
+    cmd: datazimmer run-step complete-covid_patients
+    deps:
+    - src/covid_patients.py
+    params:
+    - zimmer.yaml:
+      - cron_bumps.complete-covid_patients
+    outs:
+    - data/dabble/covid_patients/complete:
+        persist: true
