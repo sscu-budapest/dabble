@@ -1,4 +1,4 @@
 name: dabble
 version: v0.0
 cron_bumps:
-  complete-covid_patients: 0
+  complete-covid_patients: 1
