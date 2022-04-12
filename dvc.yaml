@@ -9,3 +9,10 @@ stages:
     outs:
     - data/dabble/covid_patients/complete:
         persist: true
+  complete-scimagojr:
+    cmd: datazimmer run-step complete-scimagojr
+    deps:
+    - src/scimagojr.py
+    outs:
+    - data/dabble/scimagojr/complete:
+        persist: true
