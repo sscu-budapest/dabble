@@ -33,17 +33,19 @@ journal_table = dz.ScruTable(JournalFeatures, JournalIndex)
 @dz.register_data_loader
 def proc():
     df = pd.read_csv("https://www.scimagojr.com/journalrank.php?out=xls", sep=";")
-    df.rename(
-        columns=lambda s: s.lower()
-        .replace(" ", "_")
-        .replace(".", "")
-        .replace("(", "")
-        .replace(")", "")
-    ).assign(
-        journal_rating=lambda df: df["sjr"].pipe(_f2str),
-        ref_per_doc=lambda df: df["ref_/_doc"].pipe(_f2str),
-    ).pipe(
-        journal_table.replace_records
+    (
+        df.rename(
+            columns=lambda s: s.lower()
+            .replace(" ", "_")
+            .replace(".", "")
+            .replace("(", "")
+            .replace(")", "")
+        )
+        .assign(
+            journal_rating=lambda df: df["sjr"].pipe(_f2str),
+            ref_per_doc=lambda df: df["ref_/_doc"].pipe(_f2str),
+        )
+        .pipe(journal_table.replace_records)
     )
 
 
