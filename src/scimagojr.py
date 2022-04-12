@@ -8,6 +8,7 @@ class JournalIndex(dz.IndexBase):
 
 class JournalFeatures(dz.TableFeaturesBase):
     rank = int
+    journal_rating = float
     title = str
     type = str
     issn = str
@@ -23,6 +24,7 @@ class JournalFeatures(dz.TableFeaturesBase):
     region = str
     publisher = str
     coverage = str
+    categories = str
 
 
 journal_table = dz.ScruTable(JournalFeatures, JournalIndex)
