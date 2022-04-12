@@ -6,7 +6,7 @@ jobs:
   cron_run:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v1
       with:
         python-version: 3.x
@@ -14,14 +14,12 @@ jobs:
       run: python -m pip install --upgrade pip; pip install -r requirements.txt
     - name: Setup Git
       run: git config --global init.defaultBranch main;git config --global user.email
-        "leo@dumbartonserum.com";git config --global user.name "Leo Dumbarton"
-    - name: Setup Auth
-      env:
-        DVC_LOCAL_CONF: ${{ secrets.DVC_LOCAL }}
-      run: echo "$DVC_LOCAL_CONF" > .dvc/config.local
+        "leo@dumbartonserum.com";git config --global user.name "Leo Dumbarton";git
+        pull --tags
     - name: Bump crons
       env:
         CRON_TRIGGER: ${{ github.event.schedule }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: datazimmer build-meta && datazimmer run-cronjobs && datazimmer publish-data
+        ZIMMER_FULL_AUTH: ${{ secrets.ZIMMER_FULL_AUTH }}
+        GIT_HTTPS_TOKEN: ${{ secrets.GIT_HTTPS_TOKEN }}
+      run: datazimmer build-meta && dvc pull && datazimmer run-cronjobs && datazimmer
+        publish-data
