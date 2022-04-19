@@ -16,5 +16,3 @@ stages:
     outs:
     - data/dabble/scimagojr/complete:
         persist: true
-    params:
-    - zimmer.yaml:
