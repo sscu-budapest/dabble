@@ -11,7 +11,7 @@ stages:
         cron_bumps.complete-covid_patients: 13
     outs:
     - path: data/dabble/covid_patients/complete
-      md5: 70cc630cd6a1ce9fe317d5e111bc042d.dir
+      md5: ede9532a5b6fb3b439d0d7c14bc828ca.dir
       size: 919880
       nfiles: 1
   complete-scimagojr:
@@ -20,12 +20,6 @@ stages:
     - path: src/scimagojr.py
       md5: 04eeed97d2405c2444f2a5e155cc51bd
       size: 1184
-    params:
-      zimmer.yaml:
-        cron_bumps:
-          complete-covid_patients: 13
-        name: dabble
-        version: v0.3
     outs:
     - path: data/dabble/scimagojr/complete
       md5: ac4f9484c4c2f89bbb8696b34371a50a.dir
