@@ -10,8 +10,6 @@ import pandas as pd
 from aswan import get_soup
 from tqdm import tqdm
 
-OWID_SRC = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
-
 
 class Condition(dz.CompositeTypeBase):
     lungs = bool
@@ -40,10 +38,16 @@ class CovidIndex(dz.IndexBase):
     serial = int
 
 
+hun_url = dz.SourceUrl("https://koronavirus.gov.hu/elhunytak")
+wd_url = dz.SourceUrl("https://www.worldometers.info/coronavirus/country/hungary/")
+owid_url = dz.SourceUrl("https://covid.ourworldindata.org")
+OWID_SRC = f"{owid_url}/data/owid-covid-data.csv"
+
+
 def get_hun_victim_df():
     dfs = []
     for p in tqdm(count()):
-        soup = get_soup(f"https://koronavirus.gov.hu/elhunytak?page={p}")
+        soup = get_soup(f"{hun_url}?page={p}")
         elem = soup.find(class_="views-table")
         try:
             dfs.append(pd.read_html(str(elem))[0])
@@ -61,7 +65,7 @@ def get_hun_victim_df():
 
 def get_count_df(patient_df):
 
-    soup = get_soup("https://www.worldometers.info/coronavirus/country/hungary/")
+    soup = get_soup(wd_url)
     js_str = soup.find("script", text=re.compile("'graph-deaths-daily', .*")).contents[
         0
     ]
