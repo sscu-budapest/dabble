@@ -4,14 +4,14 @@ stages:
     cmd: datazimmer run-step complete-covid_patients
     deps:
     - path: src/covid_patients.py
-      md5: 9b8dda803c392278c185cf3de41b3811
-      size: 3505
+      md5: 2d0bbf9809e027d5a56b93fa7be2ec6c
+      size: 3611
     params:
       zimmer.yaml:
-        cron_bumps.complete-covid_patients: 24
+        cron_bumps.complete-covid_patients: 1
     outs:
     - path: data/dabble/covid_patients/complete
-      md5: da14acfe9c564f0f945241a328e50824.dir
+      md5: df85d8852b591c9cde7cccc20160a140.dir
       size: 924563
       nfiles: 1
   complete-scimagojr:
