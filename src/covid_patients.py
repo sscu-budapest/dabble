@@ -79,16 +79,16 @@ def get_count_df(patient_df):
         )
         .assign(date=lambda df: pd.to_datetime(df["categories"]))
         .fillna(0)
+        .sort_values("date")
     )
 
-    padding = pd.DataFrame(
-        {
-            "data": [patient_df.shape[0] - daily_df["data"].sum()],
-            "date": pd.to_datetime(datetime.date.today()),
-        }
-    )
+    mismatch = patient_df.shape[0] - daily_df["data"].sum()
+    if mismatch > 0:
+        pad_dic = {"data": [mismatch], "date": pd.to_datetime(datetime.date.today())}
+        return pd.concat([daily_df, pd.DataFrame(pad_dic)], ignore_index=True)
 
-    return pd.concat([daily_df, padding], ignore_index=True)
+    daily_df["data"].iloc[-1] += mismatch
+    return daily_df
 
 
 cond_map = [
