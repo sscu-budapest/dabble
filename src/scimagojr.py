@@ -1,19 +1,18 @@
 import datazimmer as dz
 import pandas as pd
 
+class Journal(dz.AbstractEntity):
 
-class JournalIndex(dz.IndexBase):
-    sourceid = int
+    sourceid = dz. Index & int
 
 
-class JournalFeatures(dz.TableFeaturesBase):
     rank = int
     journal_rating = float
     title = str
     type = str
     issn = str
     h_index = int
-    total_docs_2020 = int
+    total_docs_2021 = int
     ref_per_doc = float
     sjr_best_quartile = str
     total_docs_3years = int
@@ -27,7 +26,7 @@ class JournalFeatures(dz.TableFeaturesBase):
     categories = str
 
 
-journal_table = dz.ScruTable(JournalFeatures, JournalIndex)
+journal_table = dz.ScruTable(Journal)
 
 
 @dz.register_data_loader

@@ -19,7 +19,10 @@ class Condition(dz.CompositeTypeBase):
     obesity = bool
 
 
-class CovidVictimFeatures(dz.TableFeaturesBase):
+class CovidVictim(dz.AbstractEntity):
+
+    serial = dz. Index & int
+
     age = int
     estimated_date = dt.datetime
     is_male = bool
@@ -27,15 +30,12 @@ class CovidVictimFeatures(dz.TableFeaturesBase):
 
     condition = Condition
 
+    # TODO: this should be inherited from elsewhere
     positive_rate = float
     total_vaccinations = int
     people_vaccinated = int
     people_fully_vaccinated = int
     total_boosters = int
-
-
-class CovidIndex(dz.IndexBase):
-    serial = int
 
 
 hun_url = dz.SourceUrl("https://koronavirus.gov.hu/elhunytak")
@@ -59,7 +59,7 @@ def get_hun_victim_df():
         .astype({"Kor": int})
         .assign(is_male=lambda df: (df["Nem"].str.lower().str[0] == "f"))
         .drop("Nem", axis=1)
-        .rename(columns={"Kor": CovidVictimFeatures.age, "Sorszám": CovidIndex.serial})
+        .rename(columns={"Kor": CovidVictim.age, "Sorszám": CovidVictim.serial})
     )
 
 
@@ -89,14 +89,14 @@ def get_count_df(patient_df):
 
 
 cond_map = [
-    (CovidVictimFeatures.condition.heart, "szív"),
-    (CovidVictimFeatures.condition.lungs, "tüdő"),
-    (CovidVictimFeatures.condition.obesity, "elhízás"),
-    (CovidVictimFeatures.condition.blood_pressure, "vérnyomás"),
-    (CovidVictimFeatures.condition.diabetes, "cukorbetegség"),
+    (CovidVictim.condition.heart, "szív"),
+    (CovidVictim.condition.lungs, "tüdő"),
+    (CovidVictim.condition.obesity, "elhízás"),
+    (CovidVictim.condition.blood_pressure, "vérnyomás"),
+    (CovidVictim.condition.diabetes, "cukorbetegség"),
 ]
 
-victim_table = dz.ScruTable(CovidVictimFeatures, CovidIndex)
+victim_table = dz.ScruTable(CovidVictim)
 
 
 @dz.register_data_loader(cron="0 16 * * *")
@@ -107,7 +107,7 @@ def create():
     owid_df = pd.read_csv(OWID_SRC).loc[lambda df: df["location"] == "Hungary", :]
 
     (
-        victim_df.sort_values(CovidIndex.serial)
+        victim_df.sort_values(CovidVictim.serial)
         .assign(
             estimated_date=np.repeat(daily_df["date"], daily_df["data"])
             .astype(str)
@@ -118,10 +118,10 @@ def create():
             **{k: _getcond(v) for k, v in cond_map},
         )
         .merge(
-            owid_df.rename(columns={"date": CovidVictimFeatures.estimated_date}),
+            owid_df.rename(columns={"date": CovidVictim.estimated_date}),
             how="left",
         )
-        .sort_values(CovidVictimFeatures.estimated_date)
+        .sort_values(CovidVictim.estimated_date)
         .fillna(method="ffill")
         .fillna(0)
         .pipe(victim_table.replace_all)
@@ -130,6 +130,6 @@ def create():
 
 def _getcond(s):
     def f(df):
-        return df[CovidVictimFeatures.raw_conditions].str.contains(s).astype(bool)
+        return df[CovidVictim.raw_conditions].str.contains(s).astype(bool)
 
     return f
