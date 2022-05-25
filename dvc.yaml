@@ -1,6 +1,6 @@
 stages:
   complete-covid_patients:
-    cmd: datazimmer run-step complete-covid_patients
+    cmd: dz run-step complete-covid_patients
     deps:
     - src/covid_patients.py
     params:
@@ -10,7 +10,7 @@ stages:
     - data/dabble/covid_patients/complete:
         persist: true
   complete-scimagojr:
-    cmd: datazimmer run-step complete-scimagojr
+    cmd: dz run-step complete-scimagojr
     deps:
     - src/scimagojr.py
     outs:
