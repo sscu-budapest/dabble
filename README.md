@@ -1,3 +1,3 @@
-# Roots and Dabbles
+## First Drafts and Doodles
 
-Finding and updating small tables for exploration and possible later extension
+Finding and updating small tables for exploration and possible later extension.
