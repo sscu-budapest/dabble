@@ -8,10 +8,10 @@ stages:
       size: 3615
     params:
       zimmer.yaml:
-        cron_bumps.complete-covid_patients: 122
+        cron_bumps.complete-covid_patients: 123
     outs:
     - path: data/dabble/covid_patients/complete
-      md5: 87f91bdf51e500422d0c18f8762ce86b.dir
+      md5: 2446e4abf259cc744442d1124f3ae391.dir
       size: 924574
       nfiles: 1
   complete-scimagojr:
