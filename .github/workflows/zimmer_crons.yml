@@ -3,7 +3,7 @@ on:
   schedule:
   - cron: 0 16 * * *
 jobs:
-  cron_run:
+  cron-run:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -19,7 +19,7 @@ jobs:
     - name: Bump crons
       env:
         CRON_TRIGGER: ${{ github.event.schedule }}
-        ZIMMER_FULL_AUTH: ${{ secrets.ZIMMER_FULL_AUTH }}
+        ZIMMER_AUTH_HEX: ${{ secrets.ZIMMER_AUTH_HEX }}
+        ZIMMER_PHRASE: ${{ secrets.ZIMMER_PHRASE }}
         GIT_HTTPS_TOKEN: ${{ secrets.GIT_HTTPS_TOKEN }}
-      run: datazimmer build-meta && dvc pull && datazimmer run-cronjobs && datazimmer
-        publish-data
+      run: dz build-meta && dvc pull && dz run-cronjobs && dz publish-data

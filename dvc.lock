@@ -11,7 +11,7 @@ stages:
         cron_bumps.complete-covid_patients: 149
     outs:
     - path: data/dabble/covid_patients/complete
-      md5: fa17143b3b8fd81a5a1e96e05cc51e73.dir
+      md5: 3b7c15a80b68833c49a46f0738c6c00c.dir
       size: 924574
       nfiles: 1
   complete-scimagojr:
@@ -22,6 +22,6 @@ stages:
       size: 1129
     outs:
     - path: data/dabble/scimagojr/complete
-      md5: a35d853ef53fc1cd146e16519437aded.dir
-      size: 3043533
+      md5: 3c3b210b0f32db21c1205cf61577015f.dir
+      size: 3043195
       nfiles: 1
