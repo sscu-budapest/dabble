@@ -1,18 +1,16 @@
 stages:
   complete-covid_patients:
-    cmd: dz run-step complete-covid_patients
+    cmd: dz run-step covid_patients complete
     deps:
     - src/covid_patients.py
     params:
     - zimmer.yaml:
-      - cron_bumps.complete-covid_patients
+      - aswan_projects.hun-covid.current_leaf
     outs:
-    - data/dabble/covid_patients/complete:
-        persist: true
+    - data/dabble/covid_patients/complete
   complete-scimagojr:
-    cmd: dz run-step complete-scimagojr
+    cmd: dz run-step scimagojr complete
     deps:
     - src/scimagojr.py
     outs:
-    - data/dabble/scimagojr/complete:
-        persist: true
+    - data/dabble/scimagojr/complete

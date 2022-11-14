@@ -1,9 +1,9 @@
-name: Scheduled Run
+name: Scheduled hun-covid
 on:
   schedule:
   - cron: 0 16 * * *
 jobs:
-  cron-run:
+  cron-run-hun-covid:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -16,10 +16,12 @@ jobs:
       run: git config --global init.defaultBranch main;git config --global user.email
         "leo@dumbartonserum.com";git config --global user.name "Leo Dumbarton";git
         pull --tags
-    - name: Bump crons
+    - name: Scheduled hun-covid
       env:
-        CRON_TRIGGER: ${{ github.event.schedule }}
         ZIMMER_AUTH_HEX: ${{ secrets.ZIMMER_AUTH_HEX }}
         ZIMMER_PHRASE: ${{ secrets.ZIMMER_PHRASE }}
         GIT_HTTPS_TOKEN: ${{ secrets.GIT_HTTPS_TOKEN }}
-      run: dz build-meta && dz update && dz run-cronjobs && dz publish-data
+        ASWAN_AUTH_PASS: ${{ secrets.ASWAN_AUTH_PASS }}
+        ASWAN_AUTH_HEX: ${{ secrets.ASWAN_AUTH_HEX }}
+        ASWAN_REMOTE: ${{ secrets.ASWAN_REMOTE }}
+      run: dz run-aswan-project --project=hun-covid

@@ -1,14 +1,19 @@
-import datetime
 import datetime as dt
 import json
 import re
-from itertools import count
+from dataclasses import dataclass
+from urllib.parse import parse_qsl, urlparse
 
+import aswan
 import datazimmer as dz
 import numpy as np
 import pandas as pd
-from aswan import get_soup
-from tqdm import tqdm
+from bs4 import BeautifulSoup
+
+hun_url = dz.SourceUrl("https://koronavirus.gov.hu/elhunytak")
+wd_url = dz.SourceUrl("https://www.worldometers.info/coronavirus/country/hungary/")
+owid_url = dz.SourceUrl("https://covid.ourworldindata.org")
+OWID_SRC = f"{owid_url}/data/owid-covid-data.csv"
 
 
 class Condition(dz.CompositeTypeBase):
@@ -21,7 +26,7 @@ class Condition(dz.CompositeTypeBase):
 
 class CovidVictim(dz.AbstractEntity):
 
-    serial = dz. Index & int
+    serial = dz.Index & int
 
     age = int
     estimated_date = dt.datetime
@@ -38,38 +43,58 @@ class CovidVictim(dz.AbstractEntity):
     total_boosters = int
 
 
-hun_url = dz.SourceUrl("https://koronavirus.gov.hu/elhunytak")
-wd_url = dz.SourceUrl("https://www.worldometers.info/coronavirus/country/hungary/")
-owid_url = dz.SourceUrl("https://covid.ourworldindata.org")
-OWID_SRC = f"{owid_url}/data/owid-covid-data.csv"
+@dataclass
+class CovidState(dz.PersistentState):
+    top_serial: int = 0
 
 
-def get_hun_victim_df():
-    dfs = []
-    for p in tqdm(count()):
-        soup = get_soup(f"{hun_url}?page={p}")
+class VictimCollector(aswan.RequestSoupHandler):
+    def parse(self, soup: "BeautifulSoup"):
+
+        state = CovidState.load()
+
+        page_no = int(dict(parse_qsl(urlparse(self._url).query))["page"])
         elem = soup.find(class_="views-table")
-        try:
-            dfs.append(pd.read_html(str(elem))[0])
-        except ValueError:
-            break
+        df = pd.read_html(str(elem))[0]
+        if df["Sorszám"].astype(int).min() > state.top_serial:
+            self.register_links_to_handler([f"{hun_url}?page={page_no + 1}"])
+        return df
 
+
+class HunCovidProject(dz.DzAswan):
+    name: str = "hun-covid"
+    cron: str = "0 16 * * *"
+    starters = {
+        VictimCollector: [f"{hun_url}?page=0"],
+        aswan.RequestHandler: [wd_url],
+    }
+
+
+def get_hun_victim_df(project: dz.DzAswan) -> pd.DataFrame:
+    dfs = []
+    for pcev in project.get_unprocessed_events(VictimCollector):
+        dfs.append(pcev.content)
     return (
         pd.concat(dfs, ignore_index=True)
         .astype({"Kor": int})
-        .assign(is_male=lambda df: (df["Nem"].str.lower().str[0] == "f"))
-        .drop("Nem", axis=1)
+        .assign(
+            is_male=lambda df: (df["Nem"].str.lower().str[0] == "f"),
+            raw_conditions=lambda df: df["Alapbetegségek"]
+            .str.lower()
+            .str.replace("õ", "ő"),
+        )
+        .drop(["Nem", "Alapbetegségek"], axis=1)
         .rename(columns={"Kor": CovidVictim.age, "Sorszám": CovidVictim.serial})
     )
 
 
-def get_count_df(patient_df):
+def get_count_df(dza: dz.DzAswan, total_count):
 
-    soup = get_soup(wd_url)
-    js_str = soup.find("script", text=re.compile("'graph-deaths-daily', .*")).contents[
-        0
-    ]
-
+    js_rex = re.compile("'graph-deaths-daily', .*")
+    soup = BeautifulSoup(
+        next(dza.get_unprocessed_events(aswan.RequestHandler)).content, "html5lib"
+    )
+    js_str = soup.find("script", text=js_rex).contents[0]
     daily_df = (
         pd.DataFrame(
             {
@@ -80,12 +105,19 @@ def get_count_df(patient_df):
         .assign(date=lambda df: pd.to_datetime(df["categories"]))
         .fillna(0)
         .sort_values("date")
-        .loc[lambda df: df["data"].cumsum() < patient_df.shape[0], :]
+        .loc[lambda df: df["data"].cumsum() < total_count, :]
     )
 
-    mismatch = patient_df.shape[0] - daily_df["data"].sum()
-    pad_dic = {"data": [mismatch], "date": pd.to_datetime(datetime.date.today())}
+    mismatch = total_count - daily_df["data"].sum()
+    pad_dic = {"data": [mismatch], "date": pd.to_datetime(dt.date.today())}
     return pd.concat([daily_df, pd.DataFrame(pad_dic)], ignore_index=True)
+
+
+def extend_with_old(df: pd.DataFrame):
+    old_victims: pd.DataFrame = victim_table.get_full_df()
+    if not old_victims.empty:
+        return pd.concat([df, old_victims.loc[:, df.columns]])
+    return df
 
 
 cond_map = [
@@ -99,22 +131,25 @@ cond_map = [
 victim_table = dz.ScruTable(CovidVictim)
 
 
-@dz.register_data_loader(cron="0 16 * * *")
+@dz.register_data_loader(extra_deps=[HunCovidProject])
 def create():
 
-    victim_df = get_hun_victim_df()
-    daily_df = get_count_df(victim_df)
+    dza = HunCovidProject()
+
+    victim_base_df = (
+        get_hun_victim_df(dza)
+        .pipe(extend_with_old)
+        .drop_duplicates(subset=[CovidVictim.serial])
+    )
+    daily_df = get_count_df(dza, victim_base_df.shape[0])
     owid_df = pd.read_csv(OWID_SRC).loc[lambda df: df["location"] == "Hungary", :]
 
     (
-        victim_df.sort_values(CovidVictim.serial)
+        victim_base_df.sort_values(CovidVictim.serial)
         .assign(
             estimated_date=np.repeat(daily_df["date"], daily_df["data"])
             .astype(str)
             .values,
-            raw_conditions=lambda df: df["Alapbetegségek"]
-            .str.lower()
-            .str.replace("õ", "ő"),
             **{k: _getcond(v) for k, v in cond_map},
         )
         .merge(

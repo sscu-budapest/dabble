@@ -1,10 +1,10 @@
 import datazimmer as dz
 import pandas as pd
 
+
 class Journal(dz.AbstractEntity):
 
-    sourceid = dz. Index & int
-
+    sourceid = dz.Index & int
 
     rank = int
     journal_rating = float
