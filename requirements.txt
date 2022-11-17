@@ -1,3 +1,2 @@
-datazimmer
-aswan
+datazimmer[collect]>=0.4.2
 lxml
