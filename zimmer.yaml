@@ -5,4 +5,4 @@ aswan_projects:
   hun-covid:
     processed_upto_by_ns:
       covid_patients: 64ef6937f231ba488704
-    current_leaf: 14cd9239db6318e3f2ca
+    current_leaf: f2b49e0100c547772717
