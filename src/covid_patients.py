@@ -61,19 +61,22 @@ class VictimCollector(aswan.RequestSoupHandler):
         return df
 
 
+class WdCollector(aswan.RequestSoupHandler):
+    def parse(self, soup: "BeautifulSoup"):
+        js_rex = re.compile("'graph-deaths-daily', .*")
+        return soup.find("script", text=js_rex).contents[0]
+
+
 class HunCovidProject(dz.DzAswan):
     name: str = "hun-covid"
     cron: str = "0 16 * * *"
     starters = {
         VictimCollector: [f"{hun_url}?page=0"],
-        aswan.RequestHandler: [wd_url],
+        WdCollector: [wd_url],
     }
 
 
-def get_hun_victim_df(project: dz.DzAswan) -> pd.DataFrame:
-    dfs = []
-    for pcev in project.get_unprocessed_events(VictimCollector):
-        dfs.append(pcev.content)
+def raw_victim_base(dfs: list) -> pd.DataFrame:
     return (
         pd.concat(dfs, ignore_index=True)
         .astype({"Kor": int})
@@ -90,11 +93,7 @@ def get_hun_victim_df(project: dz.DzAswan) -> pd.DataFrame:
 
 def get_count_df(dza: dz.DzAswan, total_count):
 
-    js_rex = re.compile("'graph-deaths-daily', .*")
-    soup = BeautifulSoup(
-        next(dza.get_unprocessed_events(aswan.RequestHandler)).content, "html5lib"
-    )
-    js_str = soup.find("script", text=js_rex).contents[0]
+    js_str = next(dza.get_unprocessed_events(WdCollector)).content
     daily_df = (
         pd.DataFrame(
             {
@@ -113,13 +112,6 @@ def get_count_df(dza: dz.DzAswan, total_count):
     return pd.concat([daily_df, pd.DataFrame(pad_dic)], ignore_index=True)
 
 
-def extend_with_old(df: pd.DataFrame):
-    old_victims: pd.DataFrame = victim_table.get_full_df()
-    if not old_victims.empty:
-        return pd.concat([df, old_victims.loc[:, df.columns]])
-    return df
-
-
 cond_map = [
     (CovidVictim.condition.heart, "szív"),
     (CovidVictim.condition.lungs, "tüdő"),
@@ -135,12 +127,23 @@ victim_table = dz.ScruTable(CovidVictim)
 def create():
 
     dza = HunCovidProject()
+    dfs = [pcev.content for pcev in dza.get_unprocessed_events(VictimCollector)]
 
-    victim_base_df = (
-        get_hun_victim_df(dza)
-        .pipe(extend_with_old)
-        .drop_duplicates(subset=[CovidVictim.serial])
-    )
+    if not dfs:
+        return
+
+    parsed_base = victim_table.get_full_df()
+    raw_base = raw_victim_base(dfs)
+
+    if not parsed_base.empty:
+        _df = pd.concat(
+            [raw_base, parsed_base.reset_index().loc[:, parsed_base.columns]]
+        )
+    else:
+        _df = parsed_base
+
+    victim_base_df = _df.drop_duplicates(subset=[CovidVictim.serial])
+
     daily_df = get_count_df(dza, victim_base_df.shape[0])
     owid_df = pd.read_csv(OWID_SRC).loc[lambda df: df["location"] == "Hungary", :]
 
@@ -161,6 +164,7 @@ def create():
         .fillna(0)
         .pipe(victim_table.replace_all)
     )
+    CovidState(top_serial=int(victim_base_df[CovidVictim.serial].max())).save()
 
 
 def _getcond(s):

@@ -7,10 +7,12 @@ stages:
     - zimmer.yaml:
       - aswan_projects.hun-covid.current_leaf
     outs:
-    - data/dabble/covid_patients/complete
+    - data/dabble/covid_patients/complete:
+        persist: true
   complete-scimagojr:
     cmd: dz run-step scimagojr complete
     deps:
     - src/scimagojr.py
     outs:
-    - data/dabble/scimagojr/complete
+    - data/dabble/scimagojr/complete:
+        persist: true

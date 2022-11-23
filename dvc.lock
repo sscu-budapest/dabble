@@ -4,15 +4,15 @@ stages:
     cmd: dz run-step covid_patients complete
     deps:
     - path: src/covid_patients.py
-      md5: c4f032e13eee818894afbda99f975118
-      size: 4787
+      md5: a9cb3e58a3364aca96e65e74302a640f
+      size: 4878
     params:
       zimmer.yaml:
-        aswan_projects.hun-covid.current_leaf: 64ef6937f231ba488704
+        aswan_projects.hun-covid.current_leaf: 635b01a9f3fe664e172e
     outs:
     - path: data/dabble/covid_patients/complete
-      md5: 0e956774b6f06d916147d11815947af9.dir
-      size: 923888
+      md5: f959ca9b880f2f6d06f9d3a6439324d9.dir
+      size: 910139
       nfiles: 1
   complete-scimagojr:
     cmd: dz run-step scimagojr complete
@@ -22,6 +22,6 @@ stages:
       size: 1128
     outs:
     - path: data/dabble/scimagojr/complete
-      md5: cf81a6113ddf0812de53d0da4b30c6ee.dir
-      size: 2474372
+      md5: 515d124e7985a7694fcb26a47e709ec2.dir
+      size: 2474390
       nfiles: 1
