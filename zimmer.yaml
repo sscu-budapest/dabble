@@ -3,7 +3,7 @@ cron: 0 16 * * 1
 version: v2.0
 aswan_projects:
   hun-covid:
-    current_leaf: d574ce84527dea5c4bfa
+    current_leaf: a1f6c816b53318b7af16
 persistent_states:
   src-covid_patients-CovidState:
     top_serial: 46266
