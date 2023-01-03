@@ -69,11 +69,7 @@ class WdCollector(aswan.RequestSoupHandler):
 
 class HunCovidProject(dz.DzAswan):
     name: str = "hun-covid"
-    cron: str = "0 16 * * *"
-    starters = {
-        VictimCollector: [f"{hun_url}?page=0"],
-        WdCollector: [wd_url],
-    }
+    starters = {WdCollector: [wd_url]}
 
 
 def raw_victim_base(dfs: list) -> pd.DataFrame:
