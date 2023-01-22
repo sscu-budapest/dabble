@@ -123,7 +123,7 @@ victim_table = dz.ScruTable(CovidVictim)
 def create():
 
     dza = HunCovidProject()
-    dfs = [pcev.content for pcev in dza.get_unprocessed_events(VictimCollector)]
+    dfs = [pcev.content for pcev in dza.get_all_events(VictimCollector)]
 
     if not dfs:
         return
@@ -136,7 +136,7 @@ def create():
             [raw_base, parsed_base.reset_index().loc[:, parsed_base.columns]]
         )
     else:
-        _df = parsed_base
+        _df = raw_base
 
     victim_base_df = _df.drop_duplicates(subset=[CovidVictim.serial])
 
@@ -158,7 +158,7 @@ def create():
         .sort_values(CovidVictim.estimated_date)
         .fillna(method="ffill")
         .fillna(0)
-        .pipe(victim_table.replace_all)
+        .pipe(victim_table.replace_records)
     )
     CovidState(top_serial=int(victim_base_df[CovidVictim.serial].max())).save()
 
