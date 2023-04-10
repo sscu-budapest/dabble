@@ -14,14 +14,3 @@ stages:
       md5: 3f3988c726c42216aea46cf814ba8bc1.dir
       size: 910402
       nfiles: 1
-  complete-scimagojr:
-    cmd: dz run-step scimagojr complete
-    deps:
-    - path: src/scimagojr.py
-      md5: c6acc70c4c43015984c601c145448eed
-      size: 1128
-    outs:
-    - path: data/dabble/scimagojr/complete
-      md5: 515d124e7985a7694fcb26a47e709ec2.dir
-      size: 2474390
-      nfiles: 1
